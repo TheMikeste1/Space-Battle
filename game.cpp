@@ -21,8 +21,40 @@
 * Constructors
 *********************************************/
 Game::Game(Point topLeft, Point bottomRight) 
-: topLeft(topLeft), bottomRight(bottomRight)
+: topLeft(topLeft), bottomRight(bottomRight), shipNumber(0)
 {
+	Ship* ship = new Ship();
+	ships.push_back(ship);
+}
+
+Game::Game(Point topLeft, Point bottomRight, int shipNumber, int numPlayers) 
+: topLeft(topLeft), bottomRight(bottomRight), shipNumber(shipNumber)
+{
+	for (int i = 0; i < numPlayers; i++)
+	{
+		int rotation = 180;
+		Point point(topLeft.getX() / 2, topLeft.getY() / 2);
+		if (i == 1)
+		{
+			point.setX(point.getX() * -1);
+			point.setY(point.getY() * -1);
+			rotation = 0;
+		}
+		if (i == 2)
+		{
+			point.setY(point.getY() * -1);
+			rotation = -90;
+		}
+		if (i == 3)
+		{
+			point.setX(point.getX() * -1);
+			rotation = 90;
+		}
+
+		Ship* ship = new Ship(point);
+		ship->setRotation(ship->getRotation() + rotation);
+		ships.push_back(ship);
+	}
 }
 
 Game::~Game()
@@ -30,6 +62,14 @@ Game::~Game()
 	//Clean up
 	if (bullets.size() != 0)
 		bullets.clear();
+
+	for (int i = 0; i < ships.size(); i++)
+	{
+		delete ships[i];
+		ships[i] = NULL;
+	}
+
+	ships.clear();
 }
 
 // You may find this function helpful...          Indeed I did. :)
@@ -83,19 +123,23 @@ void Game::advance()
 
 void Game::advanceShip()
 {
-	//Thrust
-	if (ship.getThrust())
-		ship.increaseVelocity();
-
-	ship.move();
-
-	//If the asteroid is off screen horizontally...
-	if (isOffScreen(ship.getPoint().getX()))
-		ship.setPoint(Point(-ship.getPoint().getX(), ship.getPoint().getY()));
-	//If the asteroid is off screen vertically...
-	if (isOffScreen(ship.getPoint().getY()))
+	for (vector<Ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
 	{
-		ship.setPoint(Point(ship.getPoint().getX(), -ship.getPoint().getY()));
+		Ship* ship = *it;
+		//Thrust
+		if (ship->getThrust())
+			ship->increaseVelocity();
+
+		ship->move();
+
+		//If the ship is off screen horizontally...
+		if (isOffScreen(ship->getPoint().getX()))
+			ship->setPoint(Point(-ship->getPoint().getX(), ship->getPoint().getY()));
+		//If the ship is off screen vertically...
+		if (isOffScreen(ship->getPoint().getY()))
+		{
+			ship->setPoint(Point(ship->getPoint().getX(), -ship->getPoint().getY()));
+		}
 	}
 }
 
@@ -126,14 +170,17 @@ void Game::advanceBullets()
 void Game::draw(const Interface&)
 {
 	//Ship
-	if (ship.isAlive()) //Draw the ship if alive..
-		ship.draw();
-	else                //Else, draw flames.
+	for (int i = 0; i < ships.size(); i++)
 	{
-		drawLanderFlames(ship.getPoint(), true, true, true);
-		drawText(Point(-50, 0), "You have crashed!");
+		if (ships[i]->isAlive()) //Draw the ships[i] if alive..
+			ships[i]->draw();
+		else                //Else, draw flames.
+		{
+			drawLanderFlames(ships[i]->getPoint(), true, true, true);
+			if (i == shipNumber)
+				drawText(Point(-50, 0), "You have crashed!");
+		}
 	}
-
 	/*static int ticks = 0;
 	if (asteroids.size() == 0 && ticks < 300)
 	{
@@ -152,10 +199,31 @@ void Game::draw(const Interface&)
 
 void Game::handleCollisions()
 {
-	static int timer = 0;
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		if (bullets[i].isAlive())
+		{
+			//Bullet hits ship
+			for (int j = 0; j < ships.size(); j++)
+			{
+				if (ships[j]->isAlive())
+				{
+					if (getClosestDistance(bullets[i], *ships[j]) <= ships[j]->getSize())
+					{
+						ships[j]->kill();
+						ships[j]->setThrust(false);
+						ships[j]->setVelocity(Velocity(0, 0));
+						bullets[i].kill();
+						drawLanderFlames(bullets[i].getPoint(), 1, 1, 1);
+					}
+				}
+			}
+		}
+	}
+	/*static int timer = 0;
 	if (timer > 100)
 	{
-		/*for (int i = 0; i < asteroids.size(); i++)
+		for (int i = 0; i < asteroids.size(); i++)
 		{
 			if (asteroids[i]->isAlive())
 				//Ship crashes into asteroid
@@ -189,9 +257,9 @@ void Game::handleCollisions()
 						else
 							drawLanderFlames(asteroids[i]->getPoint(), 1, 1, 1);
 					}
-		}*/
+		}
 	}
-	timer++;
+	timer++;*/
 }
 
 
@@ -229,30 +297,32 @@ void Game::cleanUp()
 
 void Game::handleInput(const Interface & ui)
 {
-	if (ship.isAlive())
+	//const before type makes variable unchangeable, const after type makes pointer constant
+	static Ship* const ship = ships[shipNumber];
+	if (ship->isAlive())
 	{
 		//Rotate
 		if (ui.isLeft())
 		{
-			ship.rotateLeft();
+			ship->rotateLeft();
 		}
 
 		if (ui.isRight())
 		{
-			ship.rotateRight();
+			ship->rotateRight();
 		}
 
 		//Thrust
 		if (ui.isUp())
-			ship.setThrust(true);
+			ship->setThrust(true);
 		else
-			ship.setThrust(false);
+			ship->setThrust(false);
 
 		//Fire
 		if (ui.isSpace())
 		{
 			Bullet newBullet;
-			newBullet.fire(ship.getPoint(), ship.getRotation(), ship.getVelocity());
+			newBullet.fire(ship->getPoint(), ship->getRotation(), ship->getVelocity());
 			bullets.push_back(newBullet);
 		}
 	}

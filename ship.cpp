@@ -31,7 +31,7 @@ void Ship::rotateLeft()
 	rotation += ROTATE_AMOUNT;
 
 	if (rotation > 359)
-		rotation = 0;
+		rotation -= 360;
 }
 
 void Ship::rotateRight()
@@ -39,5 +39,5 @@ void Ship::rotateRight()
 	rotation -= ROTATE_AMOUNT;
 
 	if (rotation < 0)
-		rotation = 359;
+		rotation += 360;
 }

@@ -27,8 +27,10 @@ private:
 	Point topLeft;
 	Point bottomRight;
 	//Game Objects
-	Ship ship;
+	vector<Ship*> ships;
 	vector<Bullet> bullets;
+	//Server-Client Relationship
+	int shipNumber;
 
 //Functions
 	//Advances
@@ -42,14 +44,14 @@ private:
 public:
 	//Constructors
 	Game(Point, Point);
+	Game(Point, Point, int, int);
 	~Game();
 	
 	//Other
 	float getClosestDistance(const Object &, const Object &) const;
 	void advance();
 	void draw(const Interface &);
-	void handleInput(const Interface &);
-	
+	void handleInput(const Interface &);	
 };
 
 

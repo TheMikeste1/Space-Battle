@@ -34,11 +34,18 @@ void callBack(const Interface *pUI, void *p)
  *********************************/
 int main(int argc, char ** argv)
 {
+	int numPlayers = 0;
+	do
+	{
+		cout << "How many players? ";
+		cin >> numPlayers;
+	} while (numPlayers > 4 || numPlayers < 1);
+
    Point topLeft(-500, 500);
    Point bottomRight(500, -500);
    
    Interface ui(argc, argv, "Asteroids", topLeft, bottomRight);
-   Game game(topLeft, bottomRight);
+   Game game(topLeft, bottomRight, 0, numPlayers);
    ui.run(callBack, &game);
    
    return 0;

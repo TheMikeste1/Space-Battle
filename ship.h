@@ -19,6 +19,7 @@ private:
 public:
 //Constructors
 	Ship() : thrust(false), size(SHIP_SIZE) {}
+	Ship(Point point) : thrust(false), size(SHIP_SIZE) {Object::point = point;}
 	~Ship() {}
 
 	//Getters
