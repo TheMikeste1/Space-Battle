@@ -23,27 +23,11 @@
 Game::Game(Point topLeft, Point bottomRight) 
 : topLeft(topLeft), bottomRight(bottomRight)
 {
-	while (asteroids.size() < 5)
-	{
-		asteroids.push_back(createBigAsteroid());
-	}
-}
-
-Game::Game(Point topLeft, Point bottomRight, int numAsteroids)
-	: topLeft(topLeft), bottomRight(bottomRight)
-{
-	while (asteroids.size() < numAsteroids)
-	{
-		asteroids.push_back(createBigAsteroid());
-	}
 }
 
 Game::~Game()
 {
 	//Clean up
-	if (asteroids.size() != 0)
-		asteroids.clear();
-
 	if (bullets.size() != 0)
 		bullets.clear();
 }
@@ -91,7 +75,6 @@ float Game :: getClosestDistance(const Object &obj1, const Object &obj2) const
 void Game::advance()
 {
 	advanceShip();
-	advanceRocks();
 	advanceBullets();
 
 	handleCollisions();
@@ -116,33 +99,6 @@ void Game::advanceShip()
 	}
 }
 
-void Game::advanceRocks()
-{
-	static int timer = 0;
-	if (timer <= 100)
-		for (int i = 0; i < asteroids.size(); i++)
-			drawSacredBird(asteroids[i]->getPoint(), 16);
-	timer++;
-	if (timer > 100)
-	{
-		for (int i = 0; i < asteroids.size(); i++)
-		{
-			asteroids[i]->move();
-
-			//If the asteroid is off screen horizontally...
-			if (isOffScreen(asteroids[i]->getPoint().getX()))
-				asteroids[i]->setPoint(Point(-asteroids[i]->getPoint().getX(), asteroids[i]->getPoint().getY()));
-			//If the asteroid is off screen vertically...
-			if (isOffScreen(asteroids[i]->getPoint().getY()))
-			{
-				asteroids[i]->setPoint(Point(asteroids[i]->getPoint().getX(), -asteroids[i]->getPoint().getY()));
-			}
-
-			asteroids[i]->setRotation(asteroids[i]->getRotation() + asteroids[i]->getSpin());
-		}
-	}
-}
-
 void Game::advanceBullets()
 {
 	for (int i = 0; i < bullets.size(); i++)
@@ -159,78 +115,6 @@ void Game::advanceBullets()
 		}
 
 	}
-}
-
-
-/*********************************************
-* Creation
-*********************************************/
-BigRock * Game::createBigAsteroid()
-{
-	BigRock *newAsteroid = NULL;
-
-	Point point(random(topLeft.getX(), bottomRight.getX() + 1), random(bottomRight.getY(), topLeft.getY() + 1));
-	//Avoid insta-deaths
-	while (point.getX() < 30 && point.getX() > -30)
-		point.setX(random(topLeft.getX(), bottomRight.getX() + 1));
-	while (point.getY() < 30 && point.getY() > -30)
-		point.setY(random(bottomRight.getY(), topLeft.getY() + 1));
-
-	int rotation = random(0, 360);
-	Velocity velocity((-cos(M_PI / 180.0 * rotation)), (sin(M_PI / 180.0 * rotation)));
-
-	BigRock *asteroid = new BigRock(point, rotation, velocity);
-	newAsteroid = asteroid;
-
-	return newAsteroid;
-}
-
-MediumRock * Game::createMediumAsteroid(Rock oldRock, int i)
-{
-	MediumRock *newAsteroid = NULL;
-
-	int rotation = random(0, 360);
-	Velocity velocity = oldRock.getVelocity();
-	velocity.setDy(velocity.getDy() + i);
-
-	MediumRock *asteroid = new MediumRock(oldRock.getPoint(), rotation, velocity);
-	newAsteroid = asteroid;
-
-	return newAsteroid;
-}
-
-SmallRock * Game::createSmallAsteroid(Rock oldRock, int i, char direction)
-{
-	SmallRock *newAsteroid = NULL;
-
-	int rotation = random(0, 360);
-	Velocity velocity = oldRock.getVelocity();
-	
-	if (direction == 'y')
-		velocity.setDy(velocity.getDy() + i);
-	else
-		velocity.setDx(velocity.getDx() + i);
-
-	SmallRock *asteroid = new SmallRock(oldRock.getPoint(), rotation, velocity);
-	newAsteroid = asteroid;
-
-	return newAsteroid;
-}
-
-/*********************************************
-* Destruction
-*********************************************/
-void Game:: bigRockDeath(Rock asteroid)
-{
-	asteroids.push_back(createMediumAsteroid(asteroid, 1));
-	asteroids.push_back(createMediumAsteroid(asteroid, -1));
-	asteroids.push_back(createSmallAsteroid(asteroid, 2, 'x'));
-}
-
-void Game::mediumRockDeath(Rock asteroid)
-{
-	asteroids.push_back(createSmallAsteroid(asteroid, -3, 'x'));
-	asteroids.push_back(createSmallAsteroid(asteroid, 3, 'x'));
 }
 
 /*********************************************
@@ -250,26 +134,12 @@ void Game::draw(const Interface&)
 		drawText(Point(-50, 0), "You have crashed!");
 	}
 
-	//Asteroids
-	static int timer = 0;
-	if (timer > 100)
-	{
-		for (int i = 0; i < asteroids.size(); i++)
-		{
-			if (asteroids[i]->isAlive())
-			{
-				asteroids[i]->draw();
-			}
-		}
-	}
-	timer++;
-
-	static int ticks = 0;
+	/*static int ticks = 0;
 	if (asteroids.size() == 0 && ticks < 300)
 	{
 		drawText(Point(-50, 0), "You have won!");
 		ticks++;
-	}
+	}*/
 	//Bullets
 	for (int i = 0; i < bullets.size(); i++)
 	{
@@ -285,7 +155,7 @@ void Game::handleCollisions()
 	static int timer = 0;
 	if (timer > 100)
 	{
-		for (int i = 0; i < asteroids.size(); i++)
+		/*for (int i = 0; i < asteroids.size(); i++)
 		{
 			if (asteroids[i]->isAlive())
 				//Ship crashes into asteroid
@@ -319,7 +189,7 @@ void Game::handleCollisions()
 						else
 							drawLanderFlames(asteroids[i]->getPoint(), 1, 1, 1);
 					}
-		}
+		}*/
 	}
 	timer++;
 }
@@ -328,7 +198,7 @@ void Game::handleCollisions()
 void Game::cleanUp()
 {
 	//Asteroids
-	vector<Rock*> :: iterator rockIt = asteroids.begin(); //Haha, rockIt == rocket.
+	/*vector<Rock*> :: iterator rockIt = asteroids.begin(); //Haha, rockIt == rocket.
 	while (rockIt != asteroids.end())
 	{
 		Rock* asteroid = *rockIt;
@@ -337,7 +207,7 @@ void Game::cleanUp()
 			rockIt = asteroids.erase(rockIt);
 		else
 			++rockIt;
-	}
+	}*/
 
 	//Bullets
 	vector<Bullet>::iterator bulletIt = bullets.begin();

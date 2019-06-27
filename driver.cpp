@@ -34,15 +34,11 @@ void callBack(const Interface *pUI, void *p)
  *********************************/
 int main(int argc, char ** argv)
 {
-	int numAsteroids;
-	cout << "How many asteroids? ";
-	cin >> numAsteroids;
-
    Point topLeft(-500, 500);
    Point bottomRight(500, -500);
    
    Interface ui(argc, argv, "Asteroids", topLeft, bottomRight);
-   Game game(topLeft, bottomRight, numAsteroids);
+   Game game(topLeft, bottomRight);
    ui.run(callBack, &game);
    
    return 0;
