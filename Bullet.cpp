@@ -13,7 +13,7 @@ void Bullet::fire(Point point, float rotation, Velocity velocity)
 	this->velocity.setDx(velocity.getDx()  - BULLET_SPEED * (sin(M_PI / 180.0 * rotation)));
 
 	//Make so bullet does not impact ship immediately...
-	this->point = Point(point.getX() + this->getVelocity().getDx() * 1.5, point.getY() + this->getVelocity().getDy() * 1.5);
+	this->point = Point(point.getX() + this->getVelocity().getDx() * 2, point.getY() + this->getVelocity().getDy() * 2);
 }
 
 /**********************************************************************

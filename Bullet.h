@@ -11,7 +11,7 @@
 #include "Object.h"
 #include "uiDraw.h"
 
-#define BULLET_SPEED 5.0
+#define BULLET_SPEED 7.5
 
 class Bullet : public Object
 {
