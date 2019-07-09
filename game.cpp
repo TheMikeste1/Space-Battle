@@ -40,12 +40,12 @@ Game::Game(Point topLeft, Point bottomRight, int shipNumber, int numPlayers)
 			point.setY(point.getY() * -1);
 			rotation = 0;
 		}
-		if (i == 2)
+		else if (i == 2)
 		{
 			point.setY(point.getY() * -1);
 			rotation = -90;
 		}
-		if (i == 3)
+		else if (i == 3)
 		{
 			point.setX(point.getX() * -1);
 			rotation = 90;
