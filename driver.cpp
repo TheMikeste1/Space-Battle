@@ -32,7 +32,7 @@ void callBack(const Interface *pUI, void *p)
  * the game and call the display engine.
  * That is all!
  *********************************/
-int main(int argc, char ** argv)
+int main(int argc, char * argv[])
 {
 	int numPlayers = 0;
 	do
@@ -41,12 +41,24 @@ int main(int argc, char ** argv)
 		cin >> numPlayers;
 	} while (numPlayers > 4 || numPlayers < 1);
 
-   Point topLeft(-500, 500);
-   Point bottomRight(500, -500);
+    Point topLeft(-500, 500);
+    Point bottomRight(500, -500);
    
-   Interface ui(argc, argv, "Asteroids", topLeft, bottomRight);
-   Game game(topLeft, bottomRight, 0, numPlayers);
-   ui.run(callBack, &game);
+    Game game(topLeft, bottomRight, 0, numPlayers);
+	
+	try
+	{
+		game.setupConnection();
+		game.setupClientSend();
+		game.setupClientReceive();
+	} catch (const char* error)
+	{
+		cout << error << endl;
+		return 1;
+	}
+
+	Interface ui(argc, argv, "Space Battle", topLeft, bottomRight);
+    ui.run(callBack, &game);
    
-   return 0;
+    return 0;
 }

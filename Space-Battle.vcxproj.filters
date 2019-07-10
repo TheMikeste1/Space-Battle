@@ -42,6 +42,9 @@
     <ClCompile Include="velocity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="connection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bullet.h">
@@ -66,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="velocity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="connection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

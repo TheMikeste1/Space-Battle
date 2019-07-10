@@ -5,17 +5,28 @@
  *
  *********************************************************************/
 
+//Game
 #include "game.h"
 
+//Data
+#include <string>
+#include <vector>
+
 // These are needed for the getClosestDistance function...
+//Math
 #include <limits>
 #include <algorithm>
-
-
-#include <vector>
 #include <cmath>
 
+#define FLT_MAX 3.402823466e+38F
+
 #define OFF_SCREEN_BORDER_AMOUNT 20.0
+
+
+/*********************************************
+* Prototypes
+*********************************************/
+//void sendThread(const Ship* const playerShip, const vector<Bullet>* const bullets, SOCKET socket);
 
 /*********************************************
 * Constructors
@@ -86,7 +97,7 @@ float Game :: getClosestDistance(const Object &obj1, const Object &obj2) const
    dMax = max(dMax, abs(obj2.getVelocity().getDy()));
    dMax = max(dMax, 0.1f); // when dx and dy are 0.0. Go through the loop once.
    
-   float distMin = std::numeric_limits<float>::max();
+   float distMin = FLT_MAX;
    for (float i = 0.0; i <= dMax; i++)
    {
       Point point1(obj1.getPoint().getX() + (obj1.getVelocity().getDx() * i / dMax),
@@ -332,4 +343,31 @@ bool Game::isOffScreen(const float place)
 {
 	return !(place >= topLeft.getX() - OFF_SCREEN_BORDER_AMOUNT
 		&& place <= bottomRight.getX() + OFF_SCREEN_BORDER_AMOUNT);
+}
+
+/*********************************************
+* Networking
+*********************************************/
+void Game::setupConnection() throw(const char*)
+{
+	try
+	{
+		connection.initialize();
+	} catch (...)
+	{
+		throw "Unable to connect to server.";
+	}
+}
+
+/*********************************************
+* Threading
+*********************************************/
+void Game::setupClientSend() throw(const char*)
+{
+
+}
+
+void Game::setupClientReceive() throw(const char*)
+{
+
 }

@@ -17,20 +17,34 @@
 
 #include <vector>
 
+//Threading
+#include <thread>
+
+//Networking
+#include "connection.h"
+
 using namespace std;
 
 class Game
 {
 private:
 //Variables
+	
 	//UI
 	Point topLeft;
 	Point bottomRight;
+	
 	//Game Objects
 	vector<Ship*> ships;
 	vector<Bullet> bullets;
+	
 	//Server-Client Relationship
 	int shipNumber;
+	Connection connection;
+
+	//Threading
+	thread* clientSend;
+	thread* clientReceive;
 
 //Functions
 	//Advances
@@ -51,7 +65,14 @@ public:
 	float getClosestDistance(const Object &, const Object &) const;
 	void advance();
 	void draw(const Interface &);
-	void handleInput(const Interface &);	
+	void handleInput(const Interface &);
+
+	//Networking
+	void setupConnection() throw(const char*);
+
+	//Threading
+	void setupClientSend() throw(const char*);
+	void setupClientReceive() throw(const char*);
 };
 
 
