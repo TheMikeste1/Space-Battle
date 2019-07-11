@@ -17,7 +17,7 @@ protected:
 	Point point;
 	Velocity velocity;
 	bool alive;
-	int rotation;
+	int rotation = 0;
 
 public:
 	//Constructors
@@ -34,6 +34,7 @@ public:
 	void setPoint(Point point);
 	void setVelocity(Velocity velocity);
 	void kill();
+	void setAlive(bool alive) { this->alive = alive; }
 	void setRotation(int rotation) { this->rotation = rotation; }
 
 	//Others

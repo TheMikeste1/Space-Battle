@@ -10,6 +10,7 @@
 #include "game.h"
 #include "uiInteract.h"
 
+
 /*************************************
  * All the interesting work happens here, when
  * I get called back from OpenGL to draw a frame.
@@ -34,7 +35,7 @@ void callBack(const Interface *pUI, void *p)
  *********************************/
 int main(int argc, char * argv[])
 {
-	int numPlayers = 0;
+	unsigned int numPlayers = 0;
 	do
 	{
 		cout << "How many players? ";

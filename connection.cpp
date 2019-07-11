@@ -98,7 +98,7 @@ void Connection::initialize() throw (const int)
 
 	if (connectionSocket == INVALID_SOCKET)
 	{
-		cout << "Unable to connect to server!\n";
+		cout << "Failed to connect.\n";
 		WSACleanup();
 		throw 1;
 	}

@@ -25,7 +25,7 @@ using namespace std;
 class Connection
 {
 private:
-	SOCKET connectionSocket;
+	SOCKET connectionSocket = NULL;
 	WSADATA wsaData;
 	bool connectionLive;
 
@@ -41,7 +41,7 @@ public:
 
 	~Connection();
 
-	bool conntected() const { return connectionLive; }
+	bool connected() const { return connectionLive; }
 
 	void initialize() throw (const int);
 	void disconnect();

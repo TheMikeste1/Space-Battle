@@ -14,8 +14,8 @@ public:
 	  //Default
 	Velocity() : deltaX(0), deltaY(0) {}
 	//Enter all
-	Velocity(float newDeltaY, float  newDeltaX)
-	{setDy(newDeltaY); setDx(newDeltaX);};
+	Velocity(float newDeltaX, float  newDeltaY)
+	{setDy(newDeltaY); setDx(newDeltaX);}
 	
 	//Getters
 	float getDx() const { return deltaX; }
@@ -28,6 +28,17 @@ public:
 	//Operators
 
 };
+
+inline bool operator==(const Velocity& lhs, const Velocity& rhs)
+{
+	if (lhs.getDx() == rhs.getDx()
+		&& lhs.getDy() == rhs.getDy())
+	{
+		return true;
+	}
+
+	return false;
+}
 
 inline std::ostream& operator << (std::ostream & out, Velocity &rhs)
 {

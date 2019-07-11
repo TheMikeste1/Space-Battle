@@ -17,8 +17,7 @@ void Object::setVelocity(Velocity velocity)
 
 void Object::kill()
 {
-	alive = false;
-	
+	alive = false;	
 }
 
 

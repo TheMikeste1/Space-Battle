@@ -10,18 +10,24 @@
 //UI
 #include "uiDraw.h"
 #include "uiInteract.h"
+
 //Game Objects
 #include "Object.h"
 #include "Bullet.h"
 #include "ship.h"
 
+//Data Types
 #include <vector>
+
+//Data Manipulation
+#include <sstream>
 
 //Threading
 #include <thread>
 
 //Networking
 #include "connection.h"
+#include <list>
 
 using namespace std;
 
@@ -36,15 +42,15 @@ private:
 	
 	//Game Objects
 	vector<Ship*> ships;
-	vector<Bullet> bullets;
+	list<Bullet> bullets;
 	
 	//Server-Client Relationship
 	int shipNumber;
 	Connection connection;
 
 	//Threading
-	thread* clientSend;
-	thread* clientReceive;
+	thread* sendThread    = NULL;
+	thread* receiveThread = NULL;
 
 //Functions
 	//Advances
@@ -54,6 +60,9 @@ private:
 	void handleCollisions();
 	void cleanUp();
 	bool isOffScreen(const float place);
+
+	friend string concatenateGameData(Game* const game);
+	friend void updateGameData(Game* const game, string data);
 
 public:
 	//Constructors
@@ -71,8 +80,10 @@ public:
 	void setupConnection() throw(const char*);
 
 	//Threading
-	void setupClientSend() throw(const char*);
-	void setupClientReceive() throw(const char*);
+	void setupClientSend();
+	void setupClientReceive();
+
+	int getNumberPlayers() const { return ships.size(); }
 };
 
 

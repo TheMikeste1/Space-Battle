@@ -134,6 +134,7 @@ void Game::advance()
 
 void Game::advanceShip()
 {
+	//lock_guard<mutex> lock(*mtx);
 	for (vector<Ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
 	{
 		Ship* ship = *it;
@@ -156,17 +157,17 @@ void Game::advanceShip()
 
 void Game::advanceBullets()
 {
-	for (int i = 0; i < bullets.size(); i++)
+	for (list<Bullet>::iterator it = bullets.begin(); it != bullets.end(); ++it)
 	{
-		bullets[i].move();
+		it->move();
 
 		//If the asteroid is off screen horizontally...
-		if (isOffScreen(bullets[i].getPoint().getX()))
-			bullets[i].setPoint(Point(-bullets[i].getPoint().getX(), bullets[i].getPoint().getY()));
+		if (isOffScreen(it->getPoint().getX()))
+			it->setPoint(Point(-it->getPoint().getX(), it->getPoint().getY()));
 		//If the asteroid is off screen vertically...
-		if (isOffScreen(bullets[i].getPoint().getY()))
+		if (isOffScreen(it->getPoint().getY()))
 		{
-			bullets[i].setPoint(Point(bullets[i].getPoint().getX(), -bullets[i].getPoint().getY()));
+			it->setPoint(Point(it->getPoint().getX(), -it->getPoint().getY()));
 		}
 
 	}
@@ -192,115 +193,55 @@ void Game::draw(const Interface&)
 				drawText(Point(-50, 0), "You have crashed!");
 		}
 	}
-	/*static int ticks = 0;
-	if (asteroids.size() == 0 && ticks < 300)
-	{
-		drawText(Point(-50, 0), "You have won!");
-		ticks++;
-	}*/
+
 	//Bullets
-	for (int i = 0; i < bullets.size(); i++)
+	for (list<Bullet>::iterator it = bullets.begin(); it != bullets.end(); ++it)
 	{
-		if (bullets[i].isAlive())
+		if (it->isAlive())
 		{
-			bullets[i].draw();
+			it->draw();
 		}
 	}
 }
 
 void Game::handleCollisions()
 {
-	for (int i = 0; i < bullets.size(); i++)
+	for (list<Bullet>::iterator it = bullets.begin(); it != bullets.end(); ++it)
 	{
-		if (bullets[i].isAlive())
+		if (it->isAlive())
 		{
 			//Bullet hits ship
 			for (int j = 0; j < ships.size(); j++)
 			{
 				if (ships[j]->isAlive())
 				{
-					if (getClosestDistance(bullets[i], *ships[j]) <= ships[j]->getSize())
+					if (getClosestDistance(*it, *ships[j]) <= ships[j]->getSize())
 					{
 						ships[j]->kill();
 						ships[j]->setThrust(false);
 						ships[j]->setVelocity(Velocity(0, 0));
-						bullets[i].kill();
-						drawLanderFlames(bullets[i].getPoint(), 1, 1, 1);
+						it->kill();
+						drawLanderFlames(it->getPoint(), 1, 1, 1);
 					}
 				}
 			}
 		}
 	}
-	/*static int timer = 0;
-	if (timer > 100)
-	{
-		for (int i = 0; i < asteroids.size(); i++)
-		{
-			if (asteroids[i]->isAlive())
-				//Ship crashes into asteroid
-				if (ship.isAlive())
-				{
-					if (getClosestDistance(*asteroids[i], ship) <= asteroids[i]->getSize() + ship.getSize())
-					{
-						ship.kill();
-						ship.setThrust(false);
-						ship.setVelocity(Velocity(0, 0));
-						asteroids[i]->kill();
-						if (asteroids[i]->getSize() == BIG_ROCK_SIZE)
-							bigRockDeath(*asteroids[i]);
-						else if (asteroids[i]->getSize() == MEDIUM_ROCK_SIZE)
-							mediumRockDeath(*asteroids[i]);
-						else
-							drawLanderFlames(asteroids[i]->getPoint(), 1, 1, 1);
-					}
-				}
-			//Bullet hits asteroid
-			for (int t = 0; t < bullets.size(); t++)
-				if (bullets[t].isAlive())
-					if (getClosestDistance(*asteroids[i], bullets[t]) <= asteroids[i]->getSize() + 3)
-					{
-						bullets[t].kill();
-						asteroids[i]->kill();
-						if (asteroids[i]->getSize() == BIG_ROCK_SIZE)
-							bigRockDeath(*asteroids[i]);
-						else if (asteroids[i]->getSize() == MEDIUM_ROCK_SIZE)
-							mediumRockDeath(*asteroids[i]);
-						else
-							drawLanderFlames(asteroids[i]->getPoint(), 1, 1, 1);
-					}
-		}
-	}
-	timer++;*/
 }
 
 
 void Game::cleanUp()
 {
-	//Asteroids
-	/*vector<Rock*> :: iterator rockIt = asteroids.begin(); //Haha, rockIt == rocket.
-	while (rockIt != asteroids.end())
-	{
-		Rock* asteroid = *rockIt;
-
-		if (!asteroid->isAlive())
-			rockIt = asteroids.erase(rockIt);
-		else
-			++rockIt;
-	}*/
-
 	//Bullets
-	vector<Bullet>::iterator bulletIt = bullets.begin();
+	list<Bullet>::iterator bulletIt = bullets.begin();
 	while (bulletIt != bullets.end())
 	{
-		Bullet bullet = *bulletIt;
+		Bullet* bullet = &*bulletIt;
+		++bulletIt;
 
-		if (!bullet.isAlive())
+		if (!bullet->isAlive())
 		{
-			bulletIt = bullets.erase(bulletIt);
-		}
-		else
-		{
-			++bulletIt;
+			bullets.remove(*bullet);
 		}
 	}
 
@@ -362,12 +303,246 @@ void Game::setupConnection() throw(const char*)
 /*********************************************
 * Threading
 *********************************************/
-void Game::setupClientSend() throw(const char*)
+#define CRLF "\r\n"
+string concatenateGameData(Game* const game)
 {
+	string data;
+	Ship* ship = game->ships[game->shipNumber];
 
+	//Send ship info
+	//S| == ship data
+	data.append("S" + to_string(game->shipNumber) + "|");
+	//Order: alive, thrust, point x, point y, velocity dx, velocity dy, rotation
+	if (ship->isAlive())
+	{
+		string alive = "1";
+		char thrust = ship->getThrust() ? '1' : '0';
+		
+		float x = ship->getPoint().getX();
+		float y = ship->getPoint().getY();
+		
+		float dx = ship->getVelocity().getDx();
+		float dy = ship->getVelocity().getDy();
+
+		int rotation = ship->getRotation();
+
+		data.append(alive + "," + thrust + ","                //Alive, Thrust
+			     + to_string(x) + "," + to_string(y) + ","    //Point
+		         + to_string(dx) + "," + to_string(dy) + ","  //Velocity
+		         + to_string(rotation));                      //Rotation
+	}
+	else
+		data.append("0"); //Ship is dead, send nothing else.
+	//Add end section character
+	data.append("|"); //End ship info
+
+
+	const list<Bullet>* const bullets = &game->bullets;
+	if (!bullets->empty())
+	{
+		for (list<Bullet>::const_iterator it = bullets->begin(); it != bullets->end(); ++it)
+		{
+			const Bullet* const bullet = &*it;
+			//Order: decay, point x, point y, velocity dx, velocity dy
+			if (bullet != NULL && bullet->isAlive()) //Only send info if bullet is alive
+			{
+				//B| == bullet info
+				data.append("B|");
+				
+				int decay = bullet->getDecay();
+			
+				float x = bullet->getPoint().getX();
+				float y = bullet->getPoint().getY();
+				
+				float dx = bullet->getVelocity().getDx();
+				float dy = bullet->getVelocity().getDy();
+
+				data.append(to_string(decay) + ","            //Decay
+				     + to_string(x) + "," + to_string(y) +"," //Point
+			         + to_string(dx) + "," + to_string(dy));  //Velocity
+
+				//Add end section character
+				data.append("|"); //End bullet info
+			}
+		}
+		
+	}
+	//Add end stream character
+	data.append(CRLF);
+	return data;
 }
 
-void Game::setupClientReceive() throw(const char*)
+void sendToServer(Game* const game, Connection* const connection)
 {
+	while (connection->connected())
+	{
+		try
+		{
+			connection->sendData(concatenateGameData(game));
+		} catch (const int error)
+		{
+			cout << "Error sending info to server: " << error << endl;
+		}
 
+		Sleep(20);
+	}
 }
+
+void Game::setupClientSend()
+{
+	sendThread = new thread(sendToServer, this, &this->connection);
+}
+
+void updateGameData(Game* const game, string data)
+{
+	unsigned int pos1 = 0;
+	unsigned int pos2 = data.find('|');
+
+	string dataPiece = data.substr(pos1, pos2);	
+	
+
+	list<Bullet> newBullets;
+
+	do
+	{
+		//Ships
+		if (dataPiece[0] == 'S')
+		{
+			//Order: alive, thrust, point x, point y, velocity dx, velocity dy, rotation
+			Ship* ship = game->ships[dataPiece[1] - '0'];
+			pos1 += 3; //Manually move pos1 to next data piece
+
+			bool alive = (data[pos1] == '1') ? true : false;
+
+			if (alive)
+			{
+				pos1 += 2; //Move pos1 manually past alive to save on computation
+
+				bool thrust = (data[pos1] == '1') ? true : false;
+				pos1 += 2; //Move pos1 manually past thrust to save on computation
+
+				pos2 = data.find(',', pos1);
+				dataPiece = data.substr(pos1, pos2 - pos1);
+				pos1 = pos2 + 1;
+
+				float x = atof(dataPiece.c_str());
+
+				pos2 = data.find(',', pos1);
+				dataPiece = data.substr(pos1, pos2 - pos1);
+				pos1 = pos2 + 1;
+
+				float y = atof(dataPiece.c_str());
+
+				pos2 = data.find(',', pos1);
+				dataPiece = data.substr(pos1, pos2 - pos1);
+				pos1 = pos2 + 1;
+
+				Point point(x, y);
+
+				float dx = atof(dataPiece.c_str());
+
+				pos2 = data.find(',', pos1);
+				dataPiece = data.substr(pos1, pos2 - pos1);
+				pos1 = pos2 + 1;
+
+				float dy = atof(dataPiece.c_str());
+
+				Velocity velocity(dx, dy);
+
+				pos2 = data.find('|', pos1);
+				dataPiece = data.substr(pos1, pos2 - pos1);
+				pos1 = pos2 + 1;
+
+				int rotation = atoi(dataPiece.c_str());
+
+				ship->setThrust(thrust);
+				ship->setPoint(point);
+				ship->setVelocity(velocity);
+				ship->setRotation(rotation);
+			}
+			else
+			{
+				ship->kill();
+			}
+		}
+		else if (dataPiece[0] == 'B')
+		{
+			pos1 += 2; //Move manually over to first data piece
+			//Order: decay, point x, point y, velocity dx, velocity dy
+			pos2 = data.find(',', pos1);
+			dataPiece = data.substr(pos1, pos2 - pos1);
+			pos1 = pos2 + 1;
+			
+			int decay = atoi(dataPiece.c_str());
+
+			pos2 = data.find(',', pos1);
+			dataPiece = data.substr(pos1, pos2 - pos1);
+			pos1 = pos2 + 1;
+
+			float x = atof(dataPiece.c_str());
+
+			pos2 = data.find(',', pos1);
+			dataPiece = data.substr(pos1, pos2 - pos1);
+			pos1 = pos2 + 1;
+
+			float y = atof(dataPiece.c_str());
+
+			pos2 = data.find(',', pos1);
+			dataPiece = data.substr(pos1, pos2 - pos1);
+			pos1 = pos2 + 1;
+			
+			Point point(x, y);
+
+			float dx = atof(dataPiece.c_str());
+
+			pos2 = data.find('|', pos1);
+			dataPiece = data.substr(pos1, pos2 - pos1);
+			pos1 = pos2 + 1;
+
+			float dy = atof(dataPiece.c_str());
+
+			Velocity velocity(dx, dy);
+
+			Bullet bullet(decay, point, velocity);
+			newBullets.push_back(bullet);
+		}
+
+		dataPiece = data.substr(pos1, pos2 - pos1);
+		pos1 = pos2 + 1;
+	} while (pos1 < data.size() && dataPiece != CRLF);
+
+	game->bullets = newBullets;
+
+	if (dataPiece != CRLF)
+	{
+		throw "Incoming stream ended unexpectedly!";
+	}
+}
+
+void receiveFromServer(Game* const game, Connection* const connection)
+{
+	while (connection->connected())
+	{
+		string data = CRLF;
+		try
+		{
+			data = connection->receiveData();
+		} catch (const int error)
+		{
+			cout << "Error receiving info from server: " << error << endl;
+			break;
+		}
+
+		updateGameData(game, data);
+	}
+
+	cout << "Done\n";
+}
+
+void Game::setupClientReceive()
+{
+	receiveThread = new thread(receiveFromServer, this, &this->connection);
+}
+
+
+

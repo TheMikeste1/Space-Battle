@@ -44,6 +44,17 @@ public:
 	//Operators
 };
 
+inline bool operator==(const Point& lhs, const Point& rhs)
+{
+	if (lhs.getX() == rhs.getX()
+		&& lhs.getY() == rhs.getY())
+	{
+		return true;
+	}
+
+	return false;
+}
+
 // stream I/O useful for debugging
 std::ostream & operator << (std::ostream & out, const Point & pt);
 std::istream & operator >> (std::istream & in,        Point & pt);
