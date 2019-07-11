@@ -343,12 +343,14 @@ string concatenateGameData(Game* const game)
 		for (list<Bullet>::const_iterator it = bullets->begin(); it != bullets->end(); ++it)
 		{
 			const Bullet* const bullet = &*it;
-			//Order: decay, point x, point y, velocity dx, velocity dy
+			//Order: id, decay, point x, point y, velocity dx, velocity dy
 			if (bullet != NULL && bullet->isAlive()) //Only send info if bullet is alive
 			{
 				//B| == bullet info
 				data.append("B|");
-				
+
+				int id = bullet->getId();
+
 				int decay = bullet->getDecay();
 			
 				float x = bullet->getPoint().getX();
@@ -357,9 +359,9 @@ string concatenateGameData(Game* const game)
 				float dx = bullet->getVelocity().getDx();
 				float dy = bullet->getVelocity().getDy();
 
-				data.append(to_string(decay) + ","            //Decay
-				     + to_string(x) + "," + to_string(y) +"," //Point
-			         + to_string(dx) + "," + to_string(dy));  //Velocity
+				data.append(to_string(id) + "," + to_string(decay) + "," //Decay
+				     + to_string(x) + "," + to_string(y) +","          //Point
+			         + to_string(dx) + "," + to_string(dy));         //Velocity
 
 				//Add end section character
 				data.append("|"); //End bullet info
@@ -386,6 +388,8 @@ void sendToServer(Game* const game, Connection* const connection)
 
 		Sleep(20);
 	}
+
+	cout << "Done receiving from server\n";
 }
 
 void Game::setupClientSend()
@@ -468,7 +472,13 @@ void updateGameData(Game* const game, string data)
 		else if (dataPiece[0] == 'B')
 		{
 			pos1 += 2; //Move manually over to first data piece
-			//Order: decay, point x, point y, velocity dx, velocity dy
+			//Order: id, decay, point x, point y, velocity dx, velocity dy
+			pos2 = data.find(',', pos1);
+			dataPiece = data.substr(pos1, pos2 - pos1);
+			pos1 = pos2 + 1;
+			
+			int id = atoi(dataPiece.c_str());
+
 			pos2 = data.find(',', pos1);
 			dataPiece = data.substr(pos1, pos2 - pos1);
 			pos1 = pos2 + 1;
@@ -503,7 +513,7 @@ void updateGameData(Game* const game, string data)
 
 			Velocity velocity(dx, dy);
 
-			Bullet bullet(decay, point, velocity);
+			Bullet bullet(id, decay, point, velocity);
 			newBullets.push_back(bullet);
 		}
 
@@ -536,13 +546,10 @@ void receiveFromServer(Game* const game, Connection* const connection)
 		updateGameData(game, data);
 	}
 
-	cout << "Done\n";
+	cout << "Done receiving from server\n";
 }
 
 void Game::setupClientReceive()
 {
 	receiveThread = new thread(receiveFromServer, this, &this->connection);
 }
-
-
-

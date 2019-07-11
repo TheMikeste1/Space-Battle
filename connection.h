@@ -20,7 +20,7 @@ using namespace std;
 #pragma comment (lib, "AdvApi32.lib")
 
 #define DEFAULT_PORT "6789"
-#define MAX_BUF_LEN 1024
+#define MAX_BUF_LEN 2048
 
 class Connection
 {
