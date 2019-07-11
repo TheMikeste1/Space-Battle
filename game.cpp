@@ -38,7 +38,7 @@ Game::Game(Point topLeft, Point bottomRight)
 	ships.push_back(ship);
 }
 
-Game::Game(Point topLeft, Point bottomRight, int shipNumber, int numPlayers) 
+Game::Game(Point topLeft, Point bottomRight, int shipNumber, unsigned int numPlayers) 
 : topLeft(topLeft), bottomRight(bottomRight), shipNumber(shipNumber)
 {
 	for (int i = 0; i < numPlayers; i++)
@@ -70,6 +70,22 @@ Game::Game(Point topLeft, Point bottomRight, int shipNumber, int numPlayers)
 
 Game::~Game()
 {
+ 	this->connection.disconnect();
+
+	if (sendThread != NULL)
+	{
+		sendThread->join();
+		delete sendThread;
+		sendThread = NULL;
+	}
+
+	if (receiveThread != NULL)
+	{
+		receiveThread->join();
+		delete receiveThread;
+		receiveThread = NULL;
+	}
+
 	//Clean up
 	if (bullets.size() != 0)
 		bullets.clear();
@@ -383,13 +399,13 @@ void sendToServer(Game* const game, Connection* const connection)
 			connection->sendData(concatenateGameData(game));
 		} catch (const int error)
 		{
-			cout << "Error sending info to server: " << error << endl;
+			cout << "Error sending to server: " << error << endl;
 		}
 
 		Sleep(20);
 	}
 
-	cout << "Done receiving from server\n";
+	cout << "Done sending to server\n";
 }
 
 void Game::setupClientSend()
@@ -397,7 +413,7 @@ void Game::setupClientSend()
 	sendThread = new thread(sendToServer, this, &this->connection);
 }
 
-void updateGameData(Game* const game, string data)
+void updateGameData(Game* const game, string data) throw (const char*)
 {
 	unsigned int pos1 = 0;
 	unsigned int pos2 = data.find('|');
@@ -539,11 +555,20 @@ void receiveFromServer(Game* const game, Connection* const connection)
 			data = connection->receiveData();
 		} catch (const int error)
 		{
-			cout << "Error receiving info from server: " << error << endl;
+			cout << "Error receiving from server: " << error << endl;
 			break;
 		}
 
-		updateGameData(game, data);
+		if (data == "")
+			break;
+
+		try
+		{
+			updateGameData(game, data);
+		} catch (const char * error)
+		{
+			cout << error << endl;
+		}
 	}
 
 	cout << "Done receiving from server\n";

@@ -125,6 +125,8 @@ void Connection::disconnect()
 
 void Connection::sendData(string data) throw (const int)
 {
+	if (!connected())
+		return;
 	// 4. Send and receive data.
 	//https://docs.microsoft.com/en-us/windows/win32/winsock/sending-and-receiving-data-on-the-client
 	int resultCode;
@@ -140,6 +142,9 @@ void Connection::sendData(string data) throw (const int)
 
 string Connection::receiveData() throw (const int)
 {
+	if (!connected())
+		return "";
+
 	char incomingData[MAX_BUF_LEN] = {};
 	
 	int resultCode = recv(connectionSocket, incomingData, MAX_BUF_LEN - 1, 0);

@@ -67,7 +67,7 @@ private:
 public:
 	//Constructors
 	Game(Point, Point);
-	Game(Point, Point, int, int);
+	Game(Point, Point, int, unsigned int);
 	~Game();
 	
 	//Other
@@ -84,6 +84,7 @@ public:
 	void setupClientReceive();
 
 	int getNumberPlayers() const { return ships.size(); }
+	vector<Ship*> getShips() { return ships; }
 };
 
 

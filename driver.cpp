@@ -25,6 +25,24 @@ void callBack(const Interface *pUI, void *p)
    pGame->advance();
    pGame->handleInput(*pUI);
    pGame->draw(*pUI);
+	
+	
+   vector<Ship*> ships = pGame->getShips();
+	int dead = 0;
+	int shipAlive = 0;
+	for (int i = 0; i < ships.size(); i++)
+	{
+		if (!ships[i]->isAlive())
+			dead++;
+		else
+			shipAlive = i;
+	}
+
+	if (dead == ships.size() - 1)
+	{
+		string message("Game over! Player " + to_string(shipAlive + 1) + " won!");
+		throw message;
+	}
 }
 
 
@@ -59,7 +77,16 @@ int main(int argc, char * argv[])
 	}
 
 	Interface ui(argc, argv, "Space Battle", topLeft, bottomRight);
-    ui.run(callBack, &game);
-   
+	try
+	{
+		ui.run(callBack, &game);
+	} catch (string& error)
+	{
+		cout << error << endl;
+	}
+
+	cin.ignore();
+	cin.ignore();
+
     return 0;
 }

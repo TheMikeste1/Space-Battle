@@ -46,28 +46,18 @@ inline bool operator==(unsigned int lhs, const Bullet& rhs)
 
 inline bool operator==(const Bullet& lhs, const Bullet& rhs)
 {
-	if (lhs.getDecay() == rhs.getDecay()
-		&& lhs.isAlive() == rhs.isAlive()
-		&& lhs.getVelocity() == rhs.getVelocity()
-		&& lhs.getPoint() == rhs.getPoint())
-	{
-		return true;
-	}
-
-	return false;
+	return lhs.getDecay() == rhs.getDecay() 
+	    && lhs.isAlive() == rhs.isAlive() 
+	    && lhs.getVelocity() == rhs.getVelocity()
+		&& lhs.getPoint() == rhs.getPoint();
 }
 
 inline bool operator==(const Bullet* lhs, const Bullet& rhs)
 {
-	if (lhs->getDecay() == rhs.getDecay()
-		&& lhs->isAlive() == rhs.isAlive()
-		&& lhs->getVelocity() == rhs.getVelocity()
-		&& lhs->getPoint() == rhs.getPoint())
-	{
-		return true;
-	}
-
-	return false;
+	return lhs->getDecay() == rhs.getDecay() 
+	    && lhs->isAlive() == rhs.isAlive() 
+	    && lhs->getVelocity() == rhs.getVelocity() 
+	    && lhs->getPoint() == rhs.getPoint();
 }
 
 #endif
