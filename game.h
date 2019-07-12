@@ -42,7 +42,7 @@ private:
 	
 	//Game Objects
 	vector<Ship*> ships;
-	list<Bullet> bullets;
+	vector<Bullet> bullets;
 	
 	//Server-Client Relationship
 	int shipNumber;
@@ -60,14 +60,24 @@ private:
 	void handleCollisions();
 	void cleanUp();
 	bool isOffScreen(const float place);
+	void killShip(int);
 
 	friend string concatenateGameData(Game* const game);
 	friend void updateGameData(Game* const game, string data);
 
+	//Networking
+	void setupConnection() throw(const char*);
+	void getPlayerNumber();
+	unsigned int getNumPlayers();
+
+	//Threading
+	void setupClientSend();
+	void setupClientReceive();
+
 public:
 	//Constructors
 	Game(Point, Point);
-	Game(Point, Point, int, unsigned int);
+	Game(Point, Point, int);
 	~Game();
 	
 	//Other
@@ -76,15 +86,12 @@ public:
 	void draw(const Interface &);
 	void handleInput(const Interface &);
 
-	//Networking
-	void setupConnection() throw(const char*);
-
-	//Threading
-	void setupClientSend();
-	void setupClientReceive();
-
 	int getNumberPlayers() const { return ships.size(); }
 	vector<Ship*> getShips() { return ships; }
+
+	Connection& getConnection() { return connection; }
+
+	void gameSetup() throw (const char*);	
 };
 
 

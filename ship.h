@@ -36,7 +36,6 @@ public:
 	//Movement
 	void rotateLeft();
 	void rotateRight();
-	
 };
 
 #endif /* ship_h */

@@ -9,6 +9,7 @@
 
 //Console
 #include <iostream>
+#include <vector>
 using namespace std;
 
 //Networking
@@ -20,17 +21,28 @@ using namespace std;
 #pragma comment (lib, "AdvApi32.lib")
 
 #define DEFAULT_PORT "6789"
+#define BACKLOG 10
 #define MAX_BUF_LEN 2048
 
 class Connection
 {
 private:
-	SOCKET connectionSocket = NULL;
 	WSADATA wsaData;
-	bool connectionLive;
+
+	//Client
+	SOCKET connectionSocket = NULL;
+	bool connectionLive = false;
+
+	//Server
+	SOCKET listenSocket = NULL;
+	bool isListening = false;
+	bool serverOpen = false;
+	vector<SOCKET> sockets;
+
+	void *get_in_addr(struct sockaddr *sa);
 
 public:
-	Connection() : connectionLive(false)
+	Connection()
 	{
 		int resultCode;
 		if ((resultCode = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
@@ -39,15 +51,28 @@ public:
 		}
 	}
 
-	~Connection();
+	~Connection();	
+	
+	void cleanUp() { WSACleanup(); }
 
+	//Client
 	bool connected() const { return connectionLive; }
-
-	void initialize() throw (const int);
+	void initializeClient() throw (const int);
 	void disconnect();
+	void sendDataToServer(string data) throw (const int);
+	string receiveDataFromServer() throw (const int);
 
-	void sendData(string data) throw (const int);
-	string receiveData() throw (const int);	
+	//Server
+	bool listening() const { return isListening; }
+	bool isServerOpen() const { return serverOpen; }
+	void initializeServer() throw (const int);
+	int getClient();
+	void stopListening() { closesocket(listenSocket); isListening = false; }
+	void shutdownServer();
+	void sendDataToClient(string data, SOCKET client) throw (const int);
+	string receiveDataFromClient(SOCKET client) throw (const int);
+
+	vector<SOCKET> getSockets() const { return sockets; }
 };
 
 #endif
