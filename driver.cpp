@@ -9,6 +9,10 @@
  ******************************************************/
 #include "game.h"
 #include "uiInteract.h"
+#include <string>
+#include <iostream>
+
+using namespace std;
 
 
 /*************************************
@@ -18,7 +22,7 @@
  * engine will wait until the proper amount of
  * time has passed and put the drawing on the screen.
  **************************************/
-void callBack(const Interface *pUI, void *p)
+void callBack(const Interface *pUI, void *p) throw (const char*)
 {
    Game *pGame = (Game *)p;
    
@@ -40,14 +44,8 @@ void callBack(const Interface *pUI, void *p)
 
 	if (dead >= ships.size() - 1)
 	{	
-		try
-		{ 
-			pGame->getConnection().sendDataToServer("G");
-		} catch (...)
-		{
-			
-		}
-		throw string("Game over! Player " + to_string(shipAlive + 1) + " won!");
+		string winText("Game over! Player " + to_string(shipAlive + 1) + " won!");
+		drawText(Point(0,0), winText.c_str());
 	}
 }
 
@@ -75,13 +73,7 @@ int main(int argc, char * argv[])
 	}
 
 	Interface ui(argc, argv, "Space Battle", topLeft, bottomRight);
-	try
-	{
-		ui.run(callBack, &game);
-	} catch (string& error)
-	{
-		cout << error << endl;
-	}
+	ui.run(callBack, &game);
 
 	cin.ignore();
 	cin.ignore();

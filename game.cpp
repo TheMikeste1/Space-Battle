@@ -466,10 +466,10 @@ void sendToServer(Game* const game, Connection* const connection)
 			break;
 		}
 
-		this_thread::sleep_for(chrono::milliseconds(5));
+		this_thread::sleep_for(chrono::milliseconds(10));
 	}
 
-	cout << "Done sending to server\n";
+	cerr << "Done sending to server\n";
 }
 
 void Game::setupClientSend()
@@ -633,7 +633,7 @@ void receiveFromServer(Game* const game, Connection* const connection)
 		}
 	}
 
-	cout << "Done receiving from server\n";
+	cerr << "Done receiving from server\n";
 }
 
 void Game::setupClientReceive()

@@ -203,7 +203,7 @@ int Connection::getClient()
 	if ((client = accept(listenSocket, (struct sockaddr *) &their_address, &size))
 		== INVALID_SOCKET)
 	{
-		printf("accept failed: %d\n", WSAGetLastError());
+		cerr << "accept failed: " << WSAGetLastError() << endl;
 	    closesocket(listenSocket);
 	    WSACleanup();
 	    throw "1";
@@ -228,7 +228,7 @@ void Connection::disconnect()
 	int resultCode;
 	if ((resultCode = shutdown(connectionSocket, SD_SEND)) == SOCKET_ERROR) 
 	{
-	    printf("Disconnect failed: %d\n", WSAGetLastError());
+		cerr << "shutdown failed: " << WSAGetLastError() << endl;
 	    closesocket(connectionSocket);
 	    return;
 	}
@@ -262,7 +262,7 @@ void Connection::sendDataToServer(string data) throw (const int)
 	if ((resultCode = send(connectionSocket, data.c_str(), data.size(), 0))
 			== SOCKET_ERROR)
 	{
-		printf("send failed: %d\n", WSAGetLastError());
+		cerr << "send failed: " << WSAGetLastError() << endl;
 		closesocket(connectionSocket);
 		WSACleanup();
 		throw 1;	
@@ -290,7 +290,7 @@ void Connection::sendDataToClient(string data, SOCKET client) throw(const int)
 	if ((resultCode = send(client, data.c_str(), data.size(), 0))
 			== SOCKET_ERROR)
 	{
-		printf("send failed: %d\n", WSAGetLastError());
+		cerr << "send failed: " << WSAGetLastError() << endl;
 		closesocket(client);
 		WSACleanup();
 		throw 1;	

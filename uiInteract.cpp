@@ -317,7 +317,14 @@ void Interface::run(void (*callBack)(const Interface *, void *), void *p)
 {
    // setup the callbacks
    this->p = p;
-   this->callBack = callBack;
+
+   try
+   {
+	   this->callBack = callBack;
+   } catch (...)
+   {
+	   return;
+   }
 
    glutMainLoop();
 
