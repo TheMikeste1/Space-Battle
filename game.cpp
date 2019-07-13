@@ -466,7 +466,7 @@ void sendToServer(Game* const game, Connection* const connection)
 			break;
 		}
 
-		this_thread::sleep_for(chrono::milliseconds(20));
+		this_thread::sleep_for(chrono::milliseconds(5));
 	}
 
 	cout << "Done sending to server\n";
