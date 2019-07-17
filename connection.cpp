@@ -17,7 +17,7 @@ Connection::~Connection()
 	int resultCode;
 	if ((resultCode = shutdown(connectionSocket, SD_SEND)) == SOCKET_ERROR) 
 	{
-	    printf("shutdown failed: %d\n", WSAGetLastError());
+	    cerr << "Shutdown failed: " << WSAGetLastError() << endl;
 	    closesocket(connectionSocket);
 	    WSACleanup();
 	    return;
@@ -74,7 +74,7 @@ void Connection::initializeClient() throw (const int)
 
 	if ((resultCode = getaddrinfo(servIP.c_str(), port, &hints, &servinfo) != 0))
 	{
-		printf("getaddrinfo failed: %d\n", resultCode);
+		cerr << "getaddrinfo failed: " << resultCode << endl;
 	    WSACleanup();
 		throw 1;
 	}
@@ -85,7 +85,7 @@ void Connection::initializeClient() throw (const int)
 
 	if (connectionSocket == INVALID_SOCKET) 
 	{
-	    printf("Error at socket(): %ld\n", WSAGetLastError());
+	    cerr << "Error at socket(): " << WSAGetLastError() << endl;
 	    freeaddrinfo(servinfo);
 	    WSACleanup();
 	    throw 1;
@@ -149,7 +149,7 @@ void Connection::initializeServer() throw(const int)
 	//2.4. Check for errors.
 	if (listenSocket == INVALID_SOCKET)
 	{
-		printf("Error at socket(): %ld\n", WSAGetLastError());
+		cerr << "Error at socket(): " << WSAGetLastError() << endl;
 		freeaddrinfo(servinfo);
 		WSACleanup();
 		throw 1;
@@ -169,7 +169,7 @@ void Connection::initializeServer() throw(const int)
 	if ((resultCode = bind(listenSocket, servinfo->ai_addr, servinfo->ai_addrlen))
 		== SOCKET_ERROR)
 	{
-		printf("bind failed with error: %d\n", WSAGetLastError());
+		cout << "Bind failed with error: " << WSAGetLastError() << endl;
         freeaddrinfo(servinfo);
         closesocket(listenSocket);
         WSACleanup();
@@ -182,7 +182,7 @@ void Connection::initializeServer() throw(const int)
 	//https://docs.microsoft.com/en-us/windows/desktop/winsock/listening-on-a-socket
 	if (listen(listenSocket, BACKLOG) == SOCKET_ERROR)
 	{
-		printf( "Listen failed with error: %ld\n", WSAGetLastError() );
+		cout << "Listen failed with error: " << WSAGetLastError() << endl;
 		closesocket(listenSocket);
 	    WSACleanup();
 	    throw 1;
@@ -203,7 +203,7 @@ int Connection::getClient()
 	if ((client = accept(listenSocket, (struct sockaddr *) &their_address, &size))
 		== INVALID_SOCKET)
 	{
-		cerr << "accept failed: " << WSAGetLastError() << endl;
+		cerr << "Accept failed: " << WSAGetLastError() << endl;
 	    closesocket(listenSocket);
 	    WSACleanup();
 	    throw "1";
@@ -228,7 +228,7 @@ void Connection::disconnect()
 	int resultCode;
 	if ((resultCode = shutdown(connectionSocket, SD_SEND)) == SOCKET_ERROR) 
 	{
-		cerr << "shutdown failed: " << WSAGetLastError() << endl;
+	   cerr << "Disconnect failed: " << WSAGetLastError() << endl;
 	    closesocket(connectionSocket);
 	    return;
 	}
@@ -280,6 +280,9 @@ string Connection::receiveDataFromServer() throw (const int)
 
 	string data(incomingData);
 
+	if (resultCode > 0)
+		cerr << "Received " << resultCode << " bytes: " << data << endl;
+
 	return data;
 }
 
@@ -301,7 +304,8 @@ string Connection::receiveDataFromClient(SOCKET client) throw(const int)
 {
 	char incomingData[MAX_BUF_LEN] = {};
 	
-	int resultCode = recv(connectionSocket, incomingData, MAX_BUF_LEN - 1, 0);
+	int resultCode = recv(client, incomingData, 
+		               MAX_BUF_LEN - 1, 0);
 
 	string data(incomingData);
 
